@@ -1,3 +1,4 @@
+use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, TimeZone};
 use serde_json::{Number, Value};
 
 /// See http://jsonlogic.com/truthy.html
@@ -195,6 +196,35 @@ pub fn parse_float(val: &Value) -> Option<f64> {
             let parsed = &s[0..end];
             parsed.parse::<f64>().ok()
         }
+        _ => None,
+    }
+}
+
+pub fn parse_date_with_offset(time: &Value) -> Option<DateTime<FixedOffset>> {
+    match time {
+        Value::String(s) => match s.parse() {
+            Ok(a) => Some(a),
+            Err(_) => None,
+        },
+
+        _ => None,
+    }
+}
+pub fn parse_date_without_offset(time: &Value) -> Option<NaiveDateTime> {
+    match time {
+        Value::String(s) => match s.parse() {
+            Ok(a) => Some(a),
+            Err(_) => None,
+        },
+        _ => None,
+    }
+}
+pub fn parse_date_without_time(time: &Value) -> Option<NaiveDate> {
+    match time {
+        Value::String(s) => match s.parse() {
+            Ok(a) => Some(a),
+            Err(_) => None,
+        },
         _ => None,
     }
 }

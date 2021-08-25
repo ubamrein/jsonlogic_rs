@@ -36,6 +36,10 @@ mod substr;
 mod subtraction;
 mod variable;
 
+mod plus_time;
+
+mod minus_time;
+
 use serde_json::Value;
 
 use super::expression::Expression;
@@ -173,6 +177,10 @@ pub enum Operator {
     /// `var` operations inside the second argument expression are relative to the array element
     /// being tested.
     None,
+    /// Takes three arguments, the first is a date-time string, the second a integer, and the last a string unit
+    MinusTime,
+    /// Takes three arguments, the first is a date-time string, the second a integer, and the last a string unit
+    PlusTime
 }
 
 impl Operator {
@@ -214,6 +222,8 @@ impl Operator {
             "all" => Some(Operator::All),
             "some" => Some(Operator::Some),
             "none" => Some(Operator::None),
+            "plusTime" => Some(Operator::PlusTime),
+            "minusTime" => Some(Operator::MinusTime),
             _ => None,
         }
     }
@@ -254,6 +264,8 @@ impl Operator {
             Operator::Substr => substr::compute,
             Operator::Subtraction => subtraction::compute,
             Operator::Variable => variable::compute,
+            Operator::PlusTime => plus_time::compute,
+            Operator::MinusTime => minus_time::compute
         };
 
         compute_fn(args, data)
