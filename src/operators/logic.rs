@@ -1,4 +1,4 @@
-use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, TimeZone};
+use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, TimeZone, Utc};
 use serde_json::{Number, Value};
 
 /// See http://jsonlogic.com/truthy.html
@@ -216,6 +216,7 @@ pub fn parse_date_without_offset(time: &Value) -> Option<NaiveDateTime> {
             Ok(a) => Some(a),
             Err(_) => None,
         },
+         Value::Number(n) => Some(NaiveDateTime::from_timestamp(n.as_i64().unwrap(), 0)),
         _ => None,
     }
 }
