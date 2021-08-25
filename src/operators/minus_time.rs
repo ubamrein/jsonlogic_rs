@@ -62,7 +62,7 @@ pub fn compute(args: &[Expression], data: &Data) -> Value {
         _ => return Value::Null,
     };
 
-    Value::Number(date.timestamp_millis().into())
+    Value::String(date.to_rfc3339())
 }
 
 #[cfg(test)]
