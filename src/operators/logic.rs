@@ -216,7 +216,6 @@ pub fn parse_date_without_offset(time: &Value) -> Option<NaiveDateTime> {
             Ok(a) => Some(a),
             Err(_) => None,
         },
-         Value::Number(n) => Some(NaiveDateTime::from_timestamp(n.as_i64().unwrap()/1000, (n.as_i64().unwrap()%1000) as u32)),
         _ => None,
     }
 }
