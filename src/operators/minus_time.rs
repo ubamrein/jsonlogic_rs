@@ -1,12 +1,9 @@
 use std::ops::Sub;
 
-use chrono::{Duration, Offset, TimeZone};
+use chrono::Duration;
 use serde_json::Value;
 
-use super::{
-    logic::{self, parse_float},
-    Data, Expression,
-};
+use super::{Data, Expression, logic::{parse_any_date, parse_float}};
 
 /// +, takes an arbitrary number of arguments and sums them up. If just one argument is passed, it
 /// will be cast to a number. Returns `Value::Null` if one argument cannot be coerced into a
@@ -16,26 +13,7 @@ pub fn compute(args: &[Expression], data: &Data) -> Value {
         return Value::Null;
     }
     let val = &args[0].compute(data);
-    let date_string = logic::parse_date_with_offset(val)
-        .or_else(|| {
-            logic::parse_date_without_offset(val).map(|dt| {
-                chrono::offset::Utc
-                    .fix()
-                    .from_local_datetime(&dt)
-                    .earliest()
-                    .unwrap()
-            })
-        })
-        .or_else(|| {
-            logic::parse_date_without_time(val).map(|dt| {
-                chrono::offset::Utc
-                    .fix()
-                    .from_local_date(&dt)
-                    .earliest()
-                    .unwrap()
-                    .and_hms(0, 0, 0)
-            })
-        });
+    let date_string = parse_any_date(val);
     let date = if let Some(date_string) = date_string {
         date_string
     } else {

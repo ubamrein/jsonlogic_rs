@@ -1,4 +1,4 @@
-use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, TimeZone, Utc};
+use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, Offset, TimeZone, Utc};
 use serde_json::{Number, Value};
 
 /// See http://jsonlogic.com/truthy.html
@@ -98,6 +98,35 @@ pub fn less_than(a: &Value, b: &Value) -> bool {
             }
         }
     }
+}
+
+pub fn before(a: &Value, b: &Value) -> Option<bool> {
+    match (parse_any_date(a), parse_any_date(b)) {
+        (Some(a), Some(b)) => Some(a < b),
+        _ => None,
+    }
+}
+pub fn same_instant(a: &Value, b: &Value) -> Option<bool> {
+    match (parse_any_date(a), parse_any_date(b)) {
+        (Some(a), Some(b)) => Some(a == b),
+        _ => None,
+    }
+}
+pub fn after(a: &Value, b: &Value) -> Option<bool> {
+     match (parse_any_date(a), parse_any_date(b)) {
+        (Some(a), Some(b)) => Some(a > b),
+        _ => None,
+    }
+}
+pub fn not_before(a: &Value, b: &Value) -> Option<bool> {
+    before(a, b)
+        .and_then(|a| Some(!a))
+        .or_else(|| same_instant(a, b))
+}
+pub fn not_after(a: &Value, b: &Value) -> Option<bool> {
+    after(a, b)
+        .and_then(|a| Some(!a))
+        .or_else(|| same_instant(a, b))
 }
 
 pub fn less_equal_than(a: &Value, b: &Value) -> bool {
@@ -200,7 +229,30 @@ pub fn parse_float(val: &Value) -> Option<f64> {
     }
 }
 
-pub fn parse_date_with_offset(time: &Value) -> Option<DateTime<FixedOffset>> {
+pub fn parse_any_date(time: &Value) -> Option<DateTime<FixedOffset>> {
+    parse_date_with_offset(time)
+        .or_else(|| {
+            parse_date_without_offset(time).map(|dt| {
+                chrono::offset::Utc
+                    .fix()
+                    .from_local_datetime(&dt)
+                    .earliest()
+                    .unwrap()
+            })
+        })
+        .or_else(|| {
+            parse_date_without_time(time).map(|dt| {
+                chrono::offset::Utc
+                    .fix()
+                    .from_local_date(&dt)
+                    .earliest()
+                    .unwrap()
+                    .and_hms(0, 0, 0)
+            })
+        })
+}
+
+fn parse_date_with_offset(time: &Value) -> Option<DateTime<FixedOffset>> {
     match time {
         Value::String(s) => match s.parse() {
             Ok(a) => Some(a),
@@ -210,7 +262,7 @@ pub fn parse_date_with_offset(time: &Value) -> Option<DateTime<FixedOffset>> {
         _ => None,
     }
 }
-pub fn parse_date_without_offset(time: &Value) -> Option<NaiveDateTime> {
+fn parse_date_without_offset(time: &Value) -> Option<NaiveDateTime> {
     match time {
         Value::String(s) => match s.parse() {
             Ok(a) => Some(a),
@@ -219,7 +271,7 @@ pub fn parse_date_without_offset(time: &Value) -> Option<NaiveDateTime> {
         _ => None,
     }
 }
-pub fn parse_date_without_time(time: &Value) -> Option<NaiveDate> {
+fn parse_date_without_time(time: &Value) -> Option<NaiveDate> {
     match time {
         Value::String(s) => match s.parse() {
             Ok(a) => Some(a),

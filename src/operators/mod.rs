@@ -38,7 +38,11 @@ mod variable;
 
 mod plus_time;
 
+mod after;
+mod before;
 mod minus_time;
+mod not_after;
+mod not_before;
 
 use serde_json::Value;
 
@@ -180,7 +184,11 @@ pub enum Operator {
     /// Takes three arguments, the first is a date-time string, the second a integer, and the last a string unit
     MinusTime,
     /// Takes three arguments, the first is a date-time string, the second a integer, and the last a string unit
-    PlusTime
+    PlusTime,
+    After,
+    NotAfter,
+    Before,
+    NotBefore,
 }
 
 impl Operator {
@@ -224,6 +232,10 @@ impl Operator {
             "none" => Some(Operator::None),
             "plusTime" => Some(Operator::PlusTime),
             "minusTime" => Some(Operator::MinusTime),
+            "after" => Some(Operator::After),
+            "not-after" => Some(Operator::NotAfter),
+            "before" => Some(Operator::Before),
+            "not-before" => Some(Operator::NotBefore),
             _ => None,
         }
     }
@@ -265,7 +277,11 @@ impl Operator {
             Operator::Subtraction => subtraction::compute,
             Operator::Variable => variable::compute,
             Operator::PlusTime => plus_time::compute,
-            Operator::MinusTime => minus_time::compute
+            Operator::MinusTime => minus_time::compute,
+            Operator::After => after::compute,
+            Operator::NotAfter => not_after::compute,
+            Operator::Before => before::compute,
+            Operator::NotBefore => not_before::compute,
         };
 
         compute_fn(args, data)
